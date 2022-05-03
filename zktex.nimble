@@ -5,8 +5,8 @@ author        = "kylarf"
 description   = "A CLI note-taking utility based on the Zettelkasten method and LaTeX"
 license       = "MIT"
 srcDir        = "src"
-bin           = @["zktex"]
-
+binDir        = "bin"
+namedBin      = {"zktex": "zk"}.toTable()
 
 # Dependencies
 
