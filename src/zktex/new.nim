@@ -3,6 +3,7 @@ import std/[os, times, sha1, strformat, osproc]
 proc genID(): string =
   getTime().format("yyyyMMddmm")
 
+
 proc newNote*(args: seq[string]): (string, SecureHash) =
   let
     noteID = genID()
@@ -15,5 +16,4 @@ proc newNote*(args: seq[string]): (string, SecureHash) =
   let noteHash = secureHashFile(notePath)
 
   return (noteID, noteHash)
-
 

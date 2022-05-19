@@ -14,7 +14,6 @@ proc loadHashes(): JsonNode =
   try:
     return parseJson(readFile(hashedNotesPath))
   except IOError:
-    echo "Creating JSON hash file"
     writeFile(hashedNotesPath, "{}")
     return parseJson(readFile(hashedNotesPath))
 
