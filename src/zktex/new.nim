@@ -12,7 +12,7 @@ proc newNote*(args: seq[string], zkdir: string): (string, SecureHash) =
 
   writeFile(notePath, noteTemplate)
 
-  discard execCmd(fmt"nvim {notePath}")
+  discard execCmd(&"nvim {notePath}")
   let noteHash = secureHashFile(notePath)
 
   return (noteID, noteHash)
