@@ -1,14 +1,14 @@
-import std/[os, times, sha1, strformat, osproc]
+import std/[times, sha1, strformat, osproc]
 
 proc genID(): string =
   getTime().format("yyyyMMddmm")
 
 
-proc newNote*(args: seq[string]): (string, SecureHash) =
+proc newNote*(args: seq[string], zkdir: string): (string, SecureHash) =
   let
     noteID = genID()
     noteTemplate = "Test note template"
-    notePath = expandTilde(fmt"~/.zktex/{noteID}.tex")
+    notePath = &"{zkdir}/{noteID}.tex"
 
   writeFile(notePath, noteTemplate)
 

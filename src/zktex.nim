@@ -1,9 +1,11 @@
-import std/[os, json, strformat, sha1]
-import zktex/new
+import
+  std/[os, json, parsecfg, strformat, sha1],
+  zktex/[new, config]
 
 let
-  zkdir = expandTilde("~/.zktex")
-  hashedNotesPath = fmt"{zkdir}/hashes.json"
+  settings = getConfig()
+  zkdir = settings.getSectionValue("", "zkdir", &"{getHomeDir()}/zktex")
+  hashedNotesPath = &"{zkdir}/hashes.json"
 
 
 proc usage() =
@@ -23,17 +25,16 @@ proc saveHashes(noteHashes: JsonNode) =
 
 
 proc main() =
-  let noteHashes = loadHashes()
-
   if paramCount() < 1:
     usage()
   else:
     discard existsOrCreateDir(zkdir)
+    let noteHashes = loadHashes()
     let args = commandLineParams()[1..^1]
 
     case paramStr(1):
       of "new":
-        let (noteID, noteHash) = newNote(args)
+        let (noteID, noteHash) = newNote(args, zkdir)
         noteHashes[noteID] = % $noteHash
       else:
         usage()
@@ -43,3 +44,4 @@ proc main() =
 
 when isMainModule:
   main()
+
