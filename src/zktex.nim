@@ -1,10 +1,10 @@
 import
-  std/[os, json, parsecfg, strformat, sha1],
+  std/[os, json, strformat, sha1],
   zktex/[new, config]
 
 let
   settings = getConfig()
-  zkdir = settings.getSectionValue("", "zkdir", &"{getHomeDir()}/zktex")
+  zkdir = settings["zkdir"].expandTilde()
   hashedNotesPath = &"{zkdir}/hashes.json"
 
 
@@ -34,7 +34,7 @@ proc main() =
 
     case paramStr(1):
       of "new":
-        let (noteID, noteHash) = newNote(args, zkdir)
+        let (noteID, noteHash) = newNote(args, settings)
         noteHashes[noteID] = % $noteHash
       else:
         usage()

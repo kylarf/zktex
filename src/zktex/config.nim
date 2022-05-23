@@ -1,6 +1,20 @@
-import std/[os, parsecfg, strformat]
+import std/[os, parsecfg, strformat, tables]
 
-proc getConfig*(): Config =
+const defaults = {
+  "editor": "nvim",
+  "texCommand": "latexmk",
+  "viewer": "zathura",
+  "zkdir": &"{getHomeDir()}/zktex"
+}.toOrderedTable()
+
+
+type
+  ZkConfig* = ref object
+    user*: Config
+    default*: OrderedTable[string, string]
+
+
+proc getConfig*(): ZkConfig =
   let configDir = &"{getConfigDir()}/zktex"
   discard existsOrCreateDir(configDir)
   let configFile = &"{configDir}/zktex.cfg"
@@ -8,5 +22,9 @@ proc getConfig*(): Config =
   if not fileExists(configFile):
     writeFile(configFile, "")
 
-  return loadConfig(configFile)
+  return ZkConfig(user: loadConfig(configFile), default: defaults)
+
+
+proc `[]`*(settings: ZkConfig, key: string): string =
+  return settings.user.getSectionValue("", key, settings.default[key])
 
