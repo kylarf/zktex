@@ -29,13 +29,17 @@ proc saveHashes(noteHashes: JsonNode) =
 
 
 proc initDir() =
+  let
+    templatePath = settings["template"].expandTilde()
+    texClassPath = settings["texcls"].expandTilde()
+
   discard existsOrCreateDir(zkdir)
 
-  if not fileExists(settings["template"]):
-    writeFile(settings["template"], zkTemplate)
+  if not fileExists(templatePath):
+    writeFile(templatePath, zkTemplate)
 
-  if not fileExists(settings["texcls"]):
-    writeFile(settings["texcls"], zkClass)
+  if not fileExists(texClassPath):
+    writeFile(texClassPath, zkClass)
 
 
 proc main() =

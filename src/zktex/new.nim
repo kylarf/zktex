@@ -10,7 +10,7 @@ proc newNote*(args: seq[string], settings: ZkConfig): (string, SecureHash) =
   let
     noteID = genID()
     zkdir = settings["zkdir"].expandTilde()
-    noteTemplate = readFile(settings["template"])
+    noteTemplate = readFile(settings["template"].expandTilde())
     notePath = zkdir / &"{noteID}.tex"
 
   writeFile(notePath, noteTemplate)
