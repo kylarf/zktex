@@ -1,11 +1,15 @@
-import std/[os, parsecfg, strformat, tables]
+import std/[os, parsecfg, tables]
 
-const defaults = {
-  "editor": "nvim",
-  "texCommand": "latexmk",
-  "viewer": "zathura",
-  "zkdir": &"{getHomeDir()}/zktex"
-}.toOrderedTable()
+let
+  zkdir = getHomeDir() / "zktex"
+  defaults = {
+    "editor": "nvim",
+    "viewer": "zathura",
+    "texcmd": "latexmk",
+    "zkdir": zkdir,
+    "texcls": zkdir / "jyzk.cls",
+    "template": zkdir / "template.tex"
+  }.toOrderedTable()
 
 
 type
@@ -15,9 +19,9 @@ type
 
 
 proc getConfig*(): ZkConfig =
-  let configDir = &"{getConfigDir()}/zktex"
+  let configDir = getConfigDir() / "zktex"
   discard existsOrCreateDir(configDir)
-  let configFile = &"{configDir}/zktex.cfg"
+  let configFile = configDir / "zktex.cfg"
 
   if not fileExists(configFile):
     writeFile(configFile, "")
