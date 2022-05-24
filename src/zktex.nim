@@ -17,11 +17,7 @@ proc usage() =
 
 
 proc loadHashes(): JsonNode =
-  try:
-    return parseJson(readFile(hashedNotesPath))
-  except IOError:
-    writeFile(hashedNotesPath, "{}")
-    return parseJson(readFile(hashedNotesPath))
+  parseJson(readFile(hashedNotesPath))
 
 
 proc saveHashes(noteHashes: JsonNode) =
@@ -41,14 +37,20 @@ proc initDir() =
   if not fileExists(texClassPath):
     writeFile(texClassPath, zkClass)
 
+  if not fileExists(hashedNotesPath):
+    writeFile(hashedNotesPath, "{}")
+
 
 proc main() =
   if paramCount() < 1:
     usage()
+
   else:
     initDir()
-    let noteHashes = loadHashes()
-    let args = commandLineParams()[1..^1]
+
+    let
+      noteHashes = loadHashes()
+      args = commandLineParams()[1..^1]
 
     case paramStr(1):
       of "new":
