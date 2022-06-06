@@ -90,5 +90,5 @@ proc select*(results: SearchResults): seq[string] =
     selection = stdin.readLine().splitWhitespace()
 
   result = collect:
-    for idx in selection:
+    for idx in selection.map(parseInt):
       results[idx].id
