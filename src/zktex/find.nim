@@ -1,6 +1,6 @@
 import
   std/[os, strutils, editdistance, sequtils, sugar, re, stats, strformat,
-       algorithm],
+       algorithm, parseutils],
   ./config
 
 const
@@ -32,15 +32,15 @@ func getTitle*(noteText: string): string =
     return noteText[initial .. final]
 
 
-func levenshteinRatio*(s1, s2: string): float =
+func levRatio(s1, s2: string): float =
   1 - editDistance(s1, s2) / max(s1.len, s2.len)
 
 
-func fuzzyMatchWords*(words: seq[string], keyword: string): float =
-  max(words.map(word => levenshteinRatio(word, keyword)))
+func fuzzyMatchWords(words: seq[string], keyword: string): float =
+  max(words.map(word => levRatio(word, keyword)))
 
 
-func matchScore*(noteWords, keywords: seq[string]): float =
+func matchScore(noteWords, keywords: seq[string]): float =
   mean(keywords.map(kw => noteWords.fuzzyMatchWords(kw)))
 
 
@@ -64,8 +64,31 @@ proc sortResults*(results: var SearchResults) =
     cmp(a.score, b.score)
 
 
-proc show*(results: SearchResults, numbered: bool = false) =
+proc listResults*(results: SearchResults, numbered: bool = false) =
   for i, res in results.pairs:
     if numbered:
       stdout.write(&"{i}.\t")
     stdout.writeLine(&"{res.id} | {res.title}")
+
+
+func isInt(s: string): bool =
+  var n: int
+  s.parseInt(n) == s.len
+
+
+func allInBounds(selection: seq[string], resultsLen: int): bool =
+  let idxs = selection.map(parseInt)
+  all(idxs, x => x >= 0 and x < resultsLen)
+
+
+proc select*(results: SearchResults): seq[string] =
+  stdin.write("Enter space-delimited indices of desired notes: ")
+  var selection: seq[string] = stdin.readLine().splitWhitespace()
+  while not all(selection, isInt) or not allInBounds(selection, results.len):
+    stdin.writeLine("""Numeric, space-delimited values within range of
+                    displayed results only.""")
+    selection = stdin.readLine().splitWhitespace()
+
+  result = collect:
+    for idx in selection:
+      results[idx].id
