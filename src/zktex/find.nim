@@ -82,10 +82,10 @@ func allInBounds(selection: seq[string], resultsLen: int): bool =
 
 
 proc select*(results: SearchResults): seq[string] =
-  stdin.write("Enter space-delimited indices of desired notes: ")
+  stdout.write("Enter space-delimited indices of desired notes: ")
   var selection: seq[string] = stdin.readLine().splitWhitespace()
   while not all(selection, isInt) or not allInBounds(selection, results.len):
-    stdin.writeLine("""Numeric, space-delimited values within range of
+    stdout.writeLine("""Numeric, space-delimited values within range of
                     displayed results only.""")
     selection = stdin.readLine().splitWhitespace()
 
