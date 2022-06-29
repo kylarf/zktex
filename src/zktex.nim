@@ -1,6 +1,7 @@
 import
   std/[os, json, sha1],
-  zktex/[new, config]
+  zktex/[new, common/config],
+  fusion/matching
 
 const
   zkTemplate = staticRead("../TeX/template.tex")
@@ -48,11 +49,10 @@ proc main() =
   else:
     initDir()
 
-    let
-      noteHashes = loadHashes()
-      args = commandLineParams()[1..^1]
+    let noteHashes = loadHashes()
+    [@subCmd, all @args] := commandLineParams()
 
-    case paramStr(1):
+    case subCmd:
       of "new":
         let (noteID, noteHash) = newNote(args, settings)
         noteHashes[noteID] = % $noteHash
