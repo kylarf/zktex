@@ -1,11 +1,12 @@
 import
   std/[os, strutils, editdistance, sequtils, sugar, re, stats, strformat,
-       algorithm, parseutils],
-  ./config
+       algorithm, parseutils]
 
 const
-  NonAlphaNum* = AllChars - Digits - Letters
+  NonAlphaNum = AllChars - Digits - Letters
   noteFilePattern = "[0-9]*.tex"
+
+let noteTitlePattern = re"(?<=\\notetitle\{)(.*)(?=\})"
 
 
 type
@@ -17,19 +18,14 @@ type
   SearchResults* = seq[SearchResult]
 
 
-func splitKeywords*(text: string): seq[string] =
+func splitKeywords(text: string): seq[string] =
   text.split(NonAlphaNum).filter(x => x != "")
 
 
-func getTitle*(noteText: string): string =
-  let
-    pattern = re"(?<=\\notetitle\{)(.*)(?=\})"
-    (initial, final) = noteText.findBounds(pattern)
-  
-  if initial == -1:
-    return ""
-  else:
-    return noteText[initial .. final]
+proc getTitle(noteText: string): string =
+  let (initial, final) = noteText.findBounds(noteTitlePattern)
+  if initial == -1: ""
+  else: noteText[initial .. final]
 
 
 func levRatio(s1, s2: string): float =
@@ -46,7 +42,7 @@ func matchScore(noteWords, keywords: seq[string]): float =
 
 proc findKeywords*(keywords: seq[string], path: string): SearchResults =
   setCurrentDir(path)
-  result = collect:
+  collect:
     for note in walkFiles(noteFilePattern):
       let
         noteText = readFile(note)
@@ -65,30 +61,38 @@ proc sortResults*(results: var SearchResults) =
 
 
 proc listResults*(results: SearchResults, numbered: bool = false) =
-  for i, res in results.pairs:
-    if numbered:
-      stdout.write(&"{i}.\t")
-    stdout.writeLine(&"{res.id} | {res.title}")
+  if results.len == 0:
+    stdout.writeLine("No results found.")
+  else:
+    for i, res in results.pairs:
+      if numbered:
+        stdout.write(&"{i+1}.\t")
+      stdout.writeLine(&"{res.id}\t{res.title}")
 
 
-func isInt(s: string): bool =
+func isIntStr(s: string): bool =
   var n: int
   s.parseInt(n) == s.len
 
 
-func allInBounds(selection: seq[string], resultsLen: int): bool =
+func inBounds(selection: seq[string], resultsLen: int): bool =
   let idxs = selection.map(parseInt)
-  all(idxs, x => x >= 0 and x < resultsLen)
+  all(idxs, x => x in 1..resultsLen)
 
 
 proc select*(results: SearchResults): seq[string] =
-  stdout.write("Enter space-delimited indices of desired notes: ")
-  var selection: seq[string] = stdin.readLine().splitWhitespace()
-  while not all(selection, isInt) or not allInBounds(selection, results.len):
-    stdout.writeLine("""Numeric, space-delimited values within range of
-                    displayed results only.""")
-    selection = stdin.readLine().splitWhitespace()
-
-  result = collect:
-    for idx in selection.map(parseInt):
-      results[idx].id
+  case results.len:
+    of 0:
+      @[]
+    of 1:
+      @[results[0].id]
+    else:
+      stdout.write("Enter space-delimited indices of desired notes: ")
+      var selection = stdin.readLine().splitWhitespace()
+      while not (all(selection, isIntStr) and inBounds(selection, results.len)):
+        stdout.writeLine("Numeric, space-delimited values within range of displayed results only.")
+        stdout.write("Enter space-delimited indices of desired notes: ")
+        selection = stdin.readLine().splitWhitespace()
+      collect:
+        for idx in selection.map(parseInt):
+          results[idx-1].id
